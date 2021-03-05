@@ -27,7 +27,50 @@ La forma básica es abrir una linea de comandos y llamar al interprete, en su ve
 Otra forma más interesante es introducir en la primera linea del módulo la siguiente sentencia : #! usr/bin/pythonX. Sustituir X por la versión
 adecuada. En nuestro caso X es 2. En esta última opción el programa debe tener pérmiso de ejecución, sino no funciona OJO.
 ** PDUDemon
+https://docs.lavasoftware.org/lava/pdudaemon.html
+- No se permite que el dispatcher acceso directamente a la pdu.
+- Los distapchers deben realizar una peticion al pdu daemon.
+- Se nos recomienda descargar el código del git 
+https://docs.lavasoftware.org/lava/pdudaemon.html
+
 *** TODO Lado del servidor
+
+**** Compilar
+- Nos hemos descargado el código del repositorio git https://github.com/pdudaemon/pdudaemon
+- Si vamos a la sección de instalación, https://github.com/pdudaemon/pdudaemon#installing, vemos que es necesario ejectuar 
+#+BEGIN_SRC shell
+python3 setup.py install
+#+END_SRC
+- Claro hace poco hicimos la instalación de Debian y por tanto existen dependencias / paguetes que no están instaladas.
+- EL primer error fue que no encontrada el archivo libsystemd. Instalar libsystemd-dev
+- Otra fue x86_64-linux-gnu-gcc para ello instalamos *build-essential,gcc*.
+- Es necesario instalar *python3-dev*
+- Y libusb-1.0-0-dev
+- Luego tras volver a ejecutar el instalador me dada el error usr/bin/ld: can not find -ludev.
+- Ejecutar ld -ludev --verbose y resulta que falta el módulo libudev-dev. Instalamos libudev-dev.
+- Dejemos installar setuptools-rust.py . Emplear pip3 install setuptools-rust.
+- Volvemos a ejecutar el instador y Voila!!!! Instalado.
+
+pdudaemon script to /usr/local/bin
+
+**** Código
+El programa principal se encuentra en /build/lib/pdudaemon.
+***** Configurarlo como un servicio 
+Dentro de la carpeta share existe un patrón de como crear un servicio del pdudaemon.
+Vamos a copiar dicho patrón al directorio /lib/systemd/system.
+Es necesario cambiar la ruta del ejectuable, el nuevo valor es /usr/local/bin/pdudaemon
+Existen dos parametros interesantes : 
+- fichero de configuración = /etc/pdudaemon/pdudaemon.conf
+- fichero de base de datos = /var/lib/pdudaemon/pdudaemon.db
+Ninguno de los ficheros existe. Crear los ficheros.
+Dentro de la carpeta share tambien existe un patrón sobre el fichero de configuración.
+Vamos a copiar el fichero de configuración del directorio share a /etc/pdudaemon
+
+***** _init_.py
+Es el program principal o punto de entrada. 
+Se puede configurar la ruta del fichero de configuración. Por defecto en /etc/pdudaemon/pdudaemon.conf
+Tambien se especfica la ruta del fichero de log /var/log/pdudaemon.log
+
 
 *** TODO Lado del cliente
 *** DONE Driver
