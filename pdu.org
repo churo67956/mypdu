@@ -1,0 +1,48 @@
+* PDU
+** DONE Serial Control
+   CLOSED: [2021-03-05 Fri 06:21]
+- Cargar el programa SerialControl en el arduino.
+  - Por cambiar un poco la configuración el ownid es 01. Todos los comandos debe empezar con el ownid.
+    Ejemplo : 01dw0004HIGH y 01dw0004 LOW. 
+              ID COMMAND PIN ACTION
+    Los comandos anteriores nos permite poner a HHIGH el pin 4 y a LOW también el pin 4.
+  - Lo he probado abriendo una conexión serial y funciona correctamente.
+    He abriendo una conexión con el puerto /dev/ttyACM0 empleando PUTTY Client.
+    En putty ajustar el baud rate a 9600. Y la zona de TERMINAL : forzar el echo y el line editing.
+    Tras lanzar los comandos anteriores, se observaba como el led indicador del rele covernado por el pin 4 cambia 
+    de estado en función de la acción, HIGH / LOW.
+  - Existe el programa relay-ctrl.py de FLETCHER que se conecta al puerto serial y lanza las acciones sobre los reles
+    por linea de comandos introducir como primer parametro el número del rele que se quiere conmutar y como segundo
+    parámetro la acción, elegir entre LOW o HIGH.
+    *Emplear la versión 2 de python. En la versión 3 de python es necesario emplear parentesis en la llamada a la función print*
+    #+BEGIN_SRC shell
+     python2 pdu-fletcher/relay-ctrl.py 1 HIGH 
+    #+END_SRC
+    Otra cuestión es que tuve que modificar el ownid del programa relay-ctrl.py a 01.
+    Y existe un desfase para comnutar el rele4 debemos de pasar como parámetro del rele el 1. 
+    Dentro del código relay-ctrl.py suma 3 al primer argumento o número de rele.
+    Valors permitidos : python2 pdu-fletcher/relay-ctrl.py [1|2|3|4] [LOW|HIGH]
+**** Python ejecutar
+La forma básica es abrir una linea de comandos y llamar al interprete, en su versión correspondiente, de python seguido del nombre del módulo.
+Otra forma más interesante es introducir en la primera linea del módulo la siguiente sentencia : #! usr/bin/pythonX. Sustituir X por la versión
+adecuada. En nuestro caso X es 2. En esta última opción el programa debe tener pérmiso de ejecución, sino no funciona OJO.
+** PDUDemon
+*** TODO Lado del servidor
+
+*** TODO Lado del cliente
+*** DONE Driver
+    CLOSED: [2021-03-05 Fri 06:21]
+El driver sera quien finalmente envie las acciones al PDU. Es la interfaz, en nuestro ejemplo, entre el PDUClient y el Arduino que hace de PDU.
+Por lo que veo la clase principal es *LocalCmdline*, que extiende de la clase *LocalBase*. De la clase LocalBase deben heredar todos los driver 
+soportados por LAVA.
+Por los conocimientos que tengo de herencia en OOP, observo que LocalCmdline sobreescribe un método, el _port_interaction. Y que también por herencia
+de LocalBase, la LocalCmdLine presenta el método port_interaction, que creo que es el método principal empleado para interactuar con el PDU.
+En la redefinicion del método _port_interaction dentro del fichero LocalCmdline.py se observa una llamada al sistema.
+La llamada al sistema es al programa relay-ctrl.py. El programa debe estar dentro de la carpeta /usr/bin. Y como era de esperar se le pasa dos parámetros
+el pin y la acción.
+Resumiendo la clase principal es LocalCmdline. LocalCmdline sobreescribe el método _port_interaction. _port_interaction realiza llamadas al sistema para 
+ejecutar el programa relay-ctrl.py. A relay-ctrl.py se le debe pasar dos parámetros : el primero es el rele y el segundo es la acción. Recordar que 
+existe un desfase de +3. Si queremos accionar el rele4 debemos de pasar el 1 que se corresponde con el pin4.
+
+ 
+
